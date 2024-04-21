@@ -14,19 +14,15 @@ vec2 polynomeBezier(float t){
 }
 
 vec2 deriveBezier(float t){
-    vec2 result = aControlPoints[0]*(-3)*pow(1-t,2) +
+    return aControlPoints[0]*(-3)*pow(1-t,2) +
                   aControlPoints[1]*(3*pow(1-t,2)-6*t*(1-t)) + 
                   aControlPoints[2]*(6*t*(1-t)-3*pow(t,2)) +
                   aControlPoints[3]*3*pow(t,2);
-    if(gl_VertexID%2!=0){
-        return -result;
-    }
-    return result;
 }
 
 vec2 normalBezier(float t){
     vec2 normal = deriveBezier(t);
-    return vec2(normal.y,normal.x);
+    return vec2(normal.y*pow(-1,gl_VertexID%2),normal.x*pow(-1,(gl_VertexID%2)+1));
 }
 
 void main(){
