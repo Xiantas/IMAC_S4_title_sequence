@@ -77,10 +77,10 @@ fn main() {
                     .make_current(&gl_surface)
                     .unwrap();
 
-                let mut renderer = renderer.get_or_insert_with(|| Renderer::new(&gl_display));
+                let r = renderer.get_or_insert_with(|| Renderer::new(&gl_display));
 
-                renderer.set_res(200);
-                renderer.set_beziers(vec![la_bez].as_slice());
+                r.set_res(200);
+                r.set_beziers(vec![la_bez].as_slice());
 
                 if let Err(res) = gl_surface
                     .set_swap_interval(&gl_context, SwapInterval::Wait(NonZeroU32::new(1).unwrap())) {

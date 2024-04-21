@@ -169,6 +169,7 @@ pub struct Renderer {
 
 impl Renderer {
     pub fn new<D: GlDisplay>(gl_display: &D) -> Self {
+        println!("Le renderer ouais ouais");
         unsafe {
             gl::load_with(|symbol| {
                 let symbol = CString::new(symbol).unwrap();
@@ -207,15 +208,6 @@ impl Renderer {
             gl::GenVertexArrays(1, &mut vao);
             gl::BindVertexArray(vao);
 
-            let mut vertices_vbo = std::mem::zeroed();
-            gl::GenBuffers(1, &mut vertices_vbo);
-            gl::BindBuffer(gl::ARRAY_BUFFER, vertices_vbo);
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                (VERTEX_DATA.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr,
-                VERTEX_DATA.as_ptr() as *const _,
-                gl::STATIC_DRAW,
-            );
 
             let vertex_truc_attrib = 0;
             let bezier_point1_attrib = 1;
@@ -223,11 +215,14 @@ impl Renderer {
             let bezier_point3_attrib = 3;
             let bezier_point4_attrib = 4;
 
+            let mut vertices_vbo = std::mem::zeroed();
+            gl::GenBuffers(1, &mut vertices_vbo);
+            gl::BindBuffer(gl::ARRAY_BUFFER, vertices_vbo);
             gl::EnableVertexAttribArray(vertex_truc_attrib);
             gl::VertexAttribPointer(
                 vertex_truc_attrib,
                 1,
-                gl::FLOAT,
+                gl::INT,
                 0,
                 std::mem::size_of::<f32>() as gl::types::GLsizei,
                 std::ptr::null(),
@@ -236,12 +231,6 @@ impl Renderer {
             let mut instances_vbo = std::mem::zeroed();
             gl::GenBuffers(1, &mut instances_vbo);
             gl::BindBuffer(gl::ARRAY_BUFFER, instances_vbo);
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                (VERTEX_DATA.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr,
-                VERTEX_DATA.as_ptr() as *const _,
-                gl::STATIC_DRAW,
-            );
             gl::EnableVertexAttribArray(bezier_point1_attrib);
             gl::VertexAttribPointer(
                 bezier_point1_attrib,
@@ -284,6 +273,7 @@ impl Renderer {
     }
 
     pub fn set_res(&mut self, res: GLsizeiptr) {
+        println!("Rezo");
         self.res = res as GLsizeiptr;
 
         unsafe {
@@ -300,6 +290,7 @@ impl Renderer {
     }
 
     pub fn set_beziers(&mut self, beziers: &[Bezier]) {
+        println!("Bezi");
         self.beziers_count = beziers.len() as isize;
 
         let mut data = Vec::with_capacity(beziers.len()*4);
@@ -326,9 +317,9 @@ impl Renderer {
 
             gl::BindVertexArray(self.vao);
 
-            gl::ClearColor(0.0, 0.0, 0.0, 0.0);
+            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
-            gl::DrawArraysInstanced(gl::TRIANGLES, 0, self.res as GLint, self.beziers_count as GLint);
+            gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, self.res as GLint, self.beziers_count as GLint);
         }
     }
 
@@ -385,38 +376,3 @@ fn get_gl_string(variant: gl::types::GLenum) -> Option<&'static CStr> {
         (!s.is_null()).then(|| CStr::from_ptr(s.cast()))
     }
 }
-
-#[rustfmt::skip]
-static VERTEX_DATA: [f32; 15] = [
-    -0.5, -0.5,  1.0,  0.0,  0.0,
-     0.0,  0.5,  0.0,  1.0,  0.0,
-     0.5, -0.5,  0.0,  0.0,  1.0,
-];
-
-const VERTEX_SHADER_SOURCE: &[u8] = b"
-#version 440
-//precision mediump float;
-
-layout(location = 0) in vec2 position;
-layout(location = 1) in vec3 color;
-
-out vec3 v_color;
-
-void main() {
-    gl_Position = vec4(position, 0.0, 1.0);
-    v_color = color;
-}
-\0";
-
-const FRAGMENT_SHADER_SOURCE: &[u8] = b"
-#version 440
-//precision mediump float;
-
-in vec3 v_color;
-
-out vec4 fragColor;
-
-void main() {
-    fragColor = vec4(v_color, 1.0);
-}
-\0";
