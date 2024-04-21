@@ -1,4 +1,4 @@
-use image::{Rgb, RgbImage};
+use image::RgbImage;
 
 use rayon::iter::ParallelIterator;
 
@@ -6,6 +6,7 @@ use super::basics::Point;
 use super::draw::Drawable;
 use crate::utils::Distrib;
 
+#[derive(Copy, Clone)]
 pub struct Bezier {
     pub start: Point,
     pub anchor1: Point,
