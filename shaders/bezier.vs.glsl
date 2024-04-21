@@ -55,7 +55,12 @@ vec2 deriBez(float t) {
 
 vec2 normaBez(float t) {
     vec2 deri = normalize(deriBez(t))/10.0;
-    return pow(-1, float(gl_VertexID%2)) * vec2(deri.y, -deri.x);
+    if(gl_VertexID%2 == 0){
+        return vec2(deri.y, -deri.x);    
+    }
+    else{
+        return vec2(-deri.y, deri.x);
+    }    
 }
 
 void main(){
@@ -75,6 +80,6 @@ void main(){
     }
 
     gl_Position = vec4(pos, 0.0, 1.0);
-    // vec4(corones[gl_VertexID%4], 0.0, 1.0);
+    vec4(corones[gl_VertexID%4], 0.0, 1.0);
 
 }
