@@ -284,7 +284,9 @@ impl Renderer {
                 gl::STATIC_DRAW,
             );
 
-            let addr = gl::GetUniformLocation(self.program, b"uTotalVerticesCount".as_ptr() as *const i8);
+            let name = b"uTotalVerticesCount\0".as_ptr() as *const i8;
+            let addr = gl::GetUniformLocation(self.program, name);
+            println!("C laddressss :: {addr}");
             gl::Uniform1i(addr, res as GLint);
         }
     }
