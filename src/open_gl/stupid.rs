@@ -186,9 +186,9 @@ impl Renderer {
                 println!("Shaders version on {}", shaders_version.to_string_lossy());
             }
 
-            let mut code = ez_files::read_to_string("shaders/tri.vs.glsl").unwrap();
+            let mut code = ez_files::read_to_string("shaders/bezier.vs.glsl").unwrap();
             let vertex_shader = create_shader(gl::VERTEX_SHADER, code.as_bytes());
-            code = ez_files::read_to_string("shaders/tri.fs.glsl").unwrap();
+            code = ez_files::read_to_string("shaders/bezier.fs.glsl").unwrap();
             let fragment_shader = create_shader(gl::FRAGMENT_SHADER, code.as_bytes());
 
             let program = gl::CreateProgram();
@@ -293,6 +293,9 @@ impl Renderer {
                 vec![0i32; res as usize].as_ptr() as *const _,
                 gl::STATIC_DRAW,
             );
+
+            let addr = gl::GetUniformLocation(self.program, b"uTotalVerticesCount".as_ptr() as *const i8);
+            gl::Uniform1i(addr, res as GLint);
         }
     }
 
