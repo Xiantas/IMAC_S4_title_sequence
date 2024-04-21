@@ -1,23 +1,26 @@
 #version 330 core
 layout(location=0) in int aTruc;
-layout(location=1) in vec2[4] aControlPoints;
+layout(location=1) in vec2 aP0;
+layout(location=2) in vec2 aP1;
+layout(location=3) in vec2 aP2;
+layout(location=4) in vec2 aP3;
 
 out int vIntensity;
 
 uniform int uTotalVerticesCount;
 
 vec2 polynomeBezier(float t){
-    return aControlPoints[0]*pow(1-t,3) + 
-           aControlPoints[1]*3*t*pow(1-t,2) + 
-           aControlPoints[2]*3*pow(t,2)*(1-t) + 
-           aControlPoints[3]*pow(t,3);
+    return aP0*pow(1-t,3) + 
+           aP1*3*t*pow(1-t,2) + 
+           aP2*3*pow(t,2)*(1-t) + 
+           aP3*pow(t,3);
 }
 
 vec2 deriveBezier(float t){
-    return aControlPoints[0]*(-3)*pow(1-t,2) +
-                  aControlPoints[1]*(3*pow(1-t,2)-6*t*(1-t)) + 
-                  aControlPoints[2]*(6*t*(1-t)-3*pow(t,2)) +
-                  aControlPoints[3]*3*pow(t,2);
+    return aP0*(-3)*pow(1-t,2) +
+                  aP1*(3*pow(1-t,2)-6*t*(1-t)) + 
+                  aP2*(6*t*(1-t)-3*pow(t,2)) +
+                  aP3*3*pow(t,2);
 }
 
 vec2 normalBezier(float t){
