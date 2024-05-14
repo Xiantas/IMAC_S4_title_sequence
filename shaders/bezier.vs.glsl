@@ -23,18 +23,18 @@ const vec2 corones[4] = vec2[4](
 );
 
 vec2 polynomeBezier(float t){
-    return bP0*pow(1-t,3) + 
-           bP1*3*t*pow(1-t,2) + 
-           bP2*3*pow(t,2)*(1-t) + 
-           bP3*pow(t,3);
+    return aP0*pow(1-t,3) + 
+           aP1*3*t*pow(1-t,2) + 
+           aP2*3*pow(t,2)*(1-t) + 
+           aP3*pow(t,3);
 }
 
 
 vec2 deriveBezier(float t){
-    return bP0*(-3)*pow(1-t,2) +
-                  bP1*(3*pow(1-t,2)-6*t*(1-t)) + 
-                  bP2*(6*t*(1-t)-3*pow(t,2)) +
-                  bP3*3*pow(t,2);
+    return aP0*(-3)*pow(1-t,2) +
+                  aP1*(3*pow(1-t,2)-6*t*(1-t)) + 
+                  aP2*(6*t*(1-t)-3*pow(t,2)) +
+                  aP3*3*pow(t,2);
 }
 
 vec2 normalBezier(float t){
@@ -43,15 +43,15 @@ vec2 normalBezier(float t){
 }
 
 vec2 polyBez(float t) {
-    return (-bP0 + 3*bP1 - 3*bP2 + bP3) * t*t*t +
-        (3*bP0 - 6*bP1 + 3*bP2) * t*t +
-        (-3*bP0 + 3*bP1) * t + bP0;
+    return (-aP0 + 3*aP1 - 3*aP2 + aP3) * t*t*t +
+        (3*aP0 - 6*aP1 + 3*aP2) * t*t +
+        (-3*aP0 + 3*aP1) * t + aP0;
 }
 
 vec2 deriBez(float t) {
-    return 3*(-bP0 + 3*bP1 - 3*bP2 + bP3) * t*t +
-        2*(3*bP0 - 6*bP1 + 3*bP2) * t +
-        (-3*bP0 + 3*bP1);
+    return 3*(-aP0 + 3*aP1 - 3*aP2 + aP3) * t*t +
+        2*(3*aP0 - 6*aP1 + 3*aP2) * t +
+        (-3*aP0 + 3*aP1);
 }
 
 vec2 normaBez(float t) {
@@ -65,7 +65,14 @@ vec2 normaBez(float t) {
 }
 
 float width(float t){
-    return exp(-10*pow(t*2-1.0,10.0))/2;
+    if (t < 0.1) {
+        return t*t*10.0;
+    } else if (t > 0.9) {
+        return (1-t)*(1-t)*10.0;
+    } else {
+        return 0.1;
+    }
+    // exp(-10*pow(t*2-1.0,10.0))/2;
 }
 
 void main(){
@@ -81,6 +88,7 @@ void main(){
     } else {
         vIntensity = -1.0;
     }
+
     vec2 pos = polyBez(t) + width(t) * normaBez(t);
 
 /*
@@ -91,5 +99,4 @@ void main(){
 
     gl_Position = vec4(pos, 0.0, 1.0);
     // vec4(corones[gl_VertexID%4], 0.0, 1.0);
-
 }

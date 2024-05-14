@@ -16,7 +16,7 @@ use glutin_winit::DisplayBuilder;
 use raw_window_handle::HasRawWindowHandle;
 
 use glutin::{
-    config::{Api, ColorBufferType, Config, ConfigSurfaceTypes, ConfigTemplateBuilder},
+    config::{Config, ConfigTemplateBuilder},
     context::{ContextApi, ContextAttributesBuilder, NotCurrentContext, Version},
     display::GetGlDisplay,
     prelude::*,
@@ -160,6 +160,8 @@ impl Graphics {
 
 pub struct Renderer {
     program: gl::types::GLuint,
+    buf: GLuint,
+    tex: GLuint,
     vao: gl::types::GLuint,
     vertices_vbo: gl::types::GLuint,
     instances_vbo: gl::types::GLuint,
@@ -240,6 +242,7 @@ impl Renderer {
                 8 * std::mem::size_of::<f32>() as gl::types::GLsizei,
                 std::ptr::null(),
             );
+            gl::VertexAttribDivisor(bezier_point1_attrib, 1);
             gl::EnableVertexAttribArray(bezier_point2_attrib);
             gl::VertexAttribPointer(
                 bezier_point2_attrib,
@@ -249,6 +252,7 @@ impl Renderer {
                 8 * std::mem::size_of::<f32>() as gl::types::GLsizei,
                 (2 * std::mem::size_of::<f32>()) as *const () as *const _,
             );
+            gl::VertexAttribDivisor(bezier_point1_attrib, 2);
             gl::EnableVertexAttribArray(bezier_point3_attrib);
             gl::VertexAttribPointer(
                 bezier_point3_attrib,
@@ -258,6 +262,7 @@ impl Renderer {
                 8 * std::mem::size_of::<f32>() as gl::types::GLsizei,
                 (4 * std::mem::size_of::<f32>()) as *const () as *const _,
             );
+            gl::VertexAttribDivisor(bezier_point1_attrib, 3);
             gl::EnableVertexAttribArray(bezier_point4_attrib);
             gl::VertexAttribPointer(
                 bezier_point4_attrib,
@@ -267,8 +272,27 @@ impl Renderer {
                 8 * std::mem::size_of::<f32>() as gl::types::GLsizei,
                 (6 * std::mem::size_of::<f32>()) as *const () as *const _,
             );
+            gl::VertexAttribDivisor(bezier_point1_attrib, 4);
 
-            Self { program, vao, vertices_vbo, instances_vbo, beziers_count: 0, res: 0}
+            let mut buf = 0;
+//             gl::GenFramebuffers(1, &mut buf);
+//             gl::BindFramebuffer(gl::FRAMEBUFFER, buf);
+
+            let mut tex = 0;
+//             gl::GenTextures(1, &mut tex);
+//             gl::BindTexture(gl::TEXTURE_2D, tex);
+//             gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as GLint, 4096, 4096, 0, gl::RGBA, gl::UNSIGNED_BYTE, std::ptr::null());
+//             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as GLint);
+//             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as GLint);
+//             gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D, tex, 0);
+
+//             if gl::CheckFramebufferStatus(gl::FRAMEBUFFER) != gl::FRAMEBUFFER_COMPLETE {
+//                 panic!("C koi se fmrame buffer de m***e ?!?!");
+//             }
+//             gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+            gl::Enable(gl::BLEND);
+
+            Self { program, buf, tex, vao, vertices_vbo, instances_vbo, beziers_count: 0, res: 0}
         }
     }
 
@@ -292,37 +316,46 @@ impl Renderer {
     }
 
     pub fn set_beziers(&mut self, beziers: &[Bezier]) {
-        println!("Bezi");
         self.beziers_count = beziers.len() as isize;
-
-        let mut data = Vec::with_capacity(beziers.len()*4);
-        for bez in beziers {
-            data.push(bez.start);
-            data.push(bez.anchor1);
-            data.push(bez.anchor2);
-            data.push(bez.end);
-        }
+        println!("Bezi {}", self.beziers_count);
+        println!("{}", std::mem::size_of::<Bezier>());
 
         unsafe {
             gl::NamedBufferData(
                 self.instances_vbo,
-                (beziers.len()*4) as GLsizeiptr,
-                data.as_ptr() as *const () as *const _,
-                gl::STATIC_DRAW,
+                (beziers.len()* std::mem::size_of::<Bezier>()) as GLsizeiptr,
+                beziers.as_ptr() as *const () as *const _,
+                gl::DYNAMIC_DRAW,
             );
         }
     }
 
     pub fn draw(&self) {
         unsafe {
+//             gl::Viewport(0, 0, 4096, 4096);
+//             gl::BindFramebuffer(gl::FRAMEBUFFER, self.buf);
             gl::UseProgram(self.program);
 
             gl::BindVertexArray(self.vao);
 
-            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+            gl::ClearColor(0.0, 0.0, 0.0, 0.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
             gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, self.res as GLint, self.beziers_count as GLint);
         }
+    }
+
+    pub fn get_data(&self) -> Vec<u8> {
+        let mut data = Vec::<u8>::with_capacity(4096*4096*4);
+
+        unsafe {
+            data.set_len(4096*4096*4);
+
+            gl::GetTextureImage(
+                self.tex, 0, gl::RGBA, gl::UNSIGNED_BYTE,
+                4096*4096*4, data.as_mut_ptr() as *mut _);
+        }
+
+        data
     }
 
     pub fn resize(&self, width: i32, height: i32) {
@@ -338,6 +371,8 @@ impl Drop for Renderer {
             gl::DeleteProgram(self.program);
             gl::DeleteBuffers(1, &self.instances_vbo);
             gl::DeleteBuffers(1, &self.vertices_vbo);
+            gl::DeleteTextures(1, &self.tex);
+            gl::DeleteFramebuffers(1, &self.buf);
             gl::DeleteVertexArrays(1, &self.vao);
         }
     }

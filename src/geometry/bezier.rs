@@ -1,25 +1,20 @@
-use image::RgbImage;
+// use image::RgbImage;
 
-use rayon::iter::ParallelIterator;
+// use rayon::iter::ParallelIterator;
 
 use super::basics::Point;
-use super::draw::Drawable;
-use crate::utils::Distrib;
+// use super::draw::Drawable;
+// use crate::utils::Distrib;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Bezier {
     pub start: Point,
     pub anchor1: Point,
     pub anchor2: Point,
     pub end: Point,
-
-    pub start_size: f32,
-    pub mid_size: f32,
-    pub end_size: f32,
-
-    pub color: image::Rgb<u8>,
 }
 
+/*
 impl Drawable for Bezier {
     fn draw(&self, image: &mut RgbImage) {
 //        for (x, y, p) in 
@@ -45,3 +40,4 @@ fn width_interpolation(start: f32, mid: f32, end: f32, t: f32) -> f32 {
         mid + 2.0*(t-0.5) * (end - mid)
     }
 }
+*/

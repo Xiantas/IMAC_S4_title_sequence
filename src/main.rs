@@ -2,6 +2,7 @@ mod geometry;
 mod utils;
 mod open_gl;
 mod ez_files;
+mod generator;
 
 use std::num::NonZeroU32;
 
@@ -17,6 +18,11 @@ use glutin::{
     display::{GlDisplay, GetGlDisplay},
     surface::SwapInterval,
     prelude::*,
+};
+
+use image::{
+    ImageBuffer,
+    Rgba,
 };
 
 use crate::geometry::{
@@ -36,15 +42,13 @@ fn main() {
     let mut renderer = None;
 
     let la_bez = Bezier {
-        start: Point::new(0.5, 0.5),
-        anchor1: Point::new(-0.5, 0.5),
-        anchor2: Point::new(0.5, -0.5),
-        end: Point::new(-0.5, -0.5),
-        start_size: 0.0,
-        mid_size: 0.3,
-        end_size: 0.0,
-        color: image::Rgb([50, 205, 200]),
+        start: Point::new(0.5, -0.5),
+        anchor1: Point::new(-0.5, -0.5),
+        anchor2: Point::new(0.5, 0.5),
+        end: Point::new(-0.5, 0.5),
     };
+
+    let les_tas_de_bez = generator::drawings();
 
     event_loop.run(move |event, window_target, control_flow| {
         control_flow.set_wait();
@@ -80,7 +84,7 @@ fn main() {
                 let r = renderer.get_or_insert_with(|| Renderer::new(&gl_display));
 
                 r.set_res(200);
-                r.set_beziers(vec![la_bez].as_slice());
+                r.set_beziers(&[la_bez]);
 
                 if let Err(res) = gl_surface
                     .set_swap_interval(&gl_context, SwapInterval::Wait(NonZeroU32::new(1).unwrap())) {
@@ -110,11 +114,29 @@ fn main() {
             }
             Event::RedrawEventsCleared => {
                 if let Some((gl_context, gl_surface, window)) = &state {
-                    let renderer = renderer.as_ref().unwrap();
-                    renderer.draw();
+//                     let mut handles = Vec::new();
+                    let renderer = renderer.as_mut().unwrap();
+//                     for (i, les_bez) in les_tas_de_bez.iter().enumerate() {
+//                         renderer.set_beziers([la_bez].as_slice());
+                        renderer.draw();
+//                         let picture_data = renderer.get_data();
+//                         handles.push(std::thread::spawn(move || {
+//                             let buffer = ImageBuffer::<Rgba<u8>, Vec<u8>>::from_raw(4096, 4096, picture_data)
+//                                 .expect("ImageBuffer de con");
+//                             buffer.save(format!("target/pictures/omg{i:04}.png"))
+//                                 .unwrap_or_else(|e| println!("{:?}", e));
+//                         }));
+//                     }
+
+//                     for h in handles {
+//                         h.join()
+//                             .unwrap_or_else(|_| println!("Handle joined badly"));
+//                     }
+
                     window.request_redraw();
 
                     gl_surface.swap_buffers(gl_context).unwrap();
+//                     control_flow.set_exit();
                 }
             }
             _ => (),
